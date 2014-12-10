@@ -3,13 +3,16 @@ class Yuntu
 {
     const KEY = 'cce6cf9950ffc71b797903cc7bb161f2'; //申请的高德地图的 key
     const TABLE_ID = '537efba3e4b04d1899875fac'; //云图的表ID
+    
+        //geocoder api
+    const GEOCODE_URL = 'http://restapi.amap.com/v3/geocode/geo?';
+    
     //云图存储 API
     const DATA_URL = 'http://yuntuapi.amap.com/datamanage/data/';
     const DATA_CREATE = 'create';
     const DATA_UPDATA = 'update';
     const DATA_DELETE = 'delete';
     const DATA_LIST = 'list?';
-
     //云图检索 API
     const DATA_SEARCH_URL = 'http://yuntuapi.amap.com/datasearch/';
     const DATA_SEARCH_AROUND = 'around?'; //边检索
@@ -26,6 +29,8 @@ class Yuntu
         } else if (is_string($param)) {
             $url .= $param;
         }
+        //echo $url;
+        
         $oCurl = curl_init();
         if (stripos($url, "https://") !== FALSE) {
             curl_setopt($oCurl, CURLOPT_SSL_VERIFYPEER, FALSE);
@@ -42,7 +47,6 @@ class Yuntu
             return false;
         }
     }
-
     /**
      * POST 请求
      * @param string $url
@@ -79,7 +83,6 @@ class Yuntu
             return false;
         }
     }
-
     /**
      * @param $param
      * @return array
@@ -96,7 +99,23 @@ class Yuntu
             return $data;
         }
     }
-
+    
+    /**
+     * @param $param
+     * @return array
+     */
+    protected static function setGeocodeDateParam($param, $isReturn = false)
+    {
+        $data = array();
+        $data['key'] = self::KEY;
+        if (empty($isReturn)) {
+            $data['data'] = json_encode($param);
+            return $data;
+        } else {
+            return $data;
+        }
+    }
+    
     /**
      * 根据参数返回创建 _id 标示
      * @param $param
@@ -111,7 +130,6 @@ class Yuntu
             return $rs;
         }
     }
-
     /**
      * 根据字段修改数据
      * @param $param
@@ -122,7 +140,6 @@ class Yuntu
         $rs = self::httpPost(self::DATA_URL . self::DATA_UPDATA, self::setDateParam($param));
         return $rs['status'];
     }
-
     /**
      * 根据传递的ID删除
      * @param $ids
@@ -139,7 +156,6 @@ class Yuntu
             return false;
         }
     }
-
     /**
      * 根据筛选条件查询指定tableid数据表中的数据。服务协议：HTTP/GET。
      * @param null $filter
@@ -166,7 +182,6 @@ class Yuntu
             return false;
         }
     }
-
     /**
      * 周边检索
      * @param null $keywords
@@ -200,7 +215,6 @@ class Yuntu
             return false;
         }
     }
-
     /**
      * id检索
      * @param $id
@@ -217,6 +231,30 @@ class Yuntu
             return false;
         }
     }
-
-
+    
+    /**
+     * id检索
+     * @param $address
+     * @return city
+     */
+    public static function geoCode($address, $city=NULL){
+        $data = self::setGeocodeDateParam(null, true);
+        $data['address'] = $address;
+        if (!empty($city)) {
+            $data['city'] = $city;
+        }
+        $rs = self::httpGet(self::GEOCODE_URL, $data);
+        if ($rs['status'] == 1) {
+            $location = $rs["geocodes"][0]["location"];
+            //echo $location;
+            list($lng, $lat) = explode(",", $location);
+            $rs["lat"] = $lat;
+            $rs["lng"] = $lng;
+            return $rs;
+        } else {
+            return false;
+        }
+    }
 }
+
+?>
