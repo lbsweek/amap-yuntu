@@ -234,8 +234,8 @@ class Yuntu
     
     /**
      * id检索
-     * @param $address
-     * @return city
+     * @param $address, $city
+     * @return false or array with lat lng
      */
     public static function geoCode($address, $city=NULL){
         $data = self::setGeocodeDateParam(null, true);
